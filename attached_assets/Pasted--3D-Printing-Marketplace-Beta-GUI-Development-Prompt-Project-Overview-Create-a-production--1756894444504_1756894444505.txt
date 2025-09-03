@@ -1,0 +1,290 @@
+# 3D Printing Marketplace - Beta GUI Development Prompt
+
+## Project Overview
+Create a production-ready React-based frontend for a 3D printing marketplace that integrates seamlessly with the existing Flask backend (app.py). The application should be suitable for open beta release with professional UI/UX and error-free functionality.
+
+## Technical Requirements
+
+### Framework & Dependencies
+```json
+{
+  "react": "^18.2.0",
+  "react-dom": "^18.2.0",
+  "react-router-dom": "^6.8.0",
+  "axios": "^1.3.0",
+  "socket.io-client": "^4.6.0",
+  "three": "^0.150.0",
+  "@react-three/fiber": "^8.11.0",
+  "@react-three/drei": "^9.56.0",
+  "firebase": "^9.17.0",
+  "react-dropzone": "^14.2.0",
+  "react-hot-toast": "^2.4.0",
+  "lucide-react": "^0.321.0",
+  "tailwindcss": "^3.2.0"
+}
+```
+
+### Project Structure
+```
+frontend/
+├── public/
+│   ├── index.html
+│   └── favicon.ico
+├── src/
+│   ├── components/
+│   │   ├── Layout/
+│   │   ├── Auth/
+│   │   ├── Upload/
+│   │   ├── Orders/
+│   │   ├── Chat/
+│   │   └── Common/
+│   ├── pages/
+│   │   ├── Dashboard.jsx
+│   │   ├── Upload.jsx
+│   │   ├── OrderDetail.jsx
+│   │   ├── ProducerPool.jsx
+│   │   └── AdminDashboard.jsx
+│   ├── hooks/
+│   ├── utils/
+│   ├── services/
+│   └── styles/
+├── package.json
+├── tailwind.config.js
+├── vite.config.js
+└── .env.example
+```
+
+## Core Features Implementation
+
+### 1. Authentication System
+- Firebase Authentication integration
+- KVKK compliance modal
+- Role-based routing (customer/producer/admin)
+- Token management with automatic refresh
+- Turkish language support
+
+### 2. STL File Upload & Analysis
+- Drag & drop interface with progress indication
+- Three.js 3D preview component
+- Real-time analysis display (dimensions, weight, complexity)
+- IPFS integration with Pinata
+- Error handling for invalid files
+
+### 3. Dynamic Pricing Calculator
+- Real-time price updates
+- Material selection dropdown
+- Interactive sliders for infill density
+- Turkish Lira formatting (₺)
+- Breakdown visualization
+
+### 4. Order Management
+- State machine visualization
+- Photo upload with preview
+- Progress tracking timeline
+- Shipping address forms
+- Payment integration
+
+### 5. Real-time Communication
+- Socket.IO chat system
+- Notification system
+- Order status updates
+- Typing indicators
+- Message history
+
+## UI/UX Requirements
+
+### Design Principles
+- Clean, professional appearance suitable for business use
+- Intuitive navigation with clear information hierarchy
+- Responsive design (mobile-first approach)
+- Turkish language throughout
+- Trust-building elements (security badges, clear pricing)
+
+### Color Scheme & Branding
+```css
+:root {
+  --primary: #3B82F6;    /* Blue */
+  --secondary: #10B981;  /* Green */
+  --danger: #EF4444;     /* Red */
+  --warning: #F59E0B;    /* Amber */
+  --gray-50: #F9FAFB;
+  --gray-900: #111827;
+}
+```
+
+### Typography
+- Clean, readable fonts (Inter/Roboto)
+- Consistent hierarchy (h1-h6, body text)
+- Turkish character support
+- Proper contrast ratios (WCAG AA)
+
+## API Integration
+
+### Axios Configuration
+```javascript
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request interceptor for auth
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    config.headers.Authorization = token;
+  }
+  return config;
+});
+```
+
+### Error Handling
+- Turkish error messages
+- User-friendly error displays
+- Network error handling
+- Form validation feedback
+- Loading states
+
+## Turkish Localization
+
+### Date & Time Formatting
+```javascript
+const formatTurkishDate = (isoString) => {
+  // Use backend's format_datetime_tr equivalent
+  const months = ['Ocak', 'Şubat', 'Mart', ...];
+  // Implementation details
+};
+
+const formatTurkishCurrency = (amount) => {
+  return new Intl.NumberFormat('tr-TR', {
+    style: 'currency',
+    currency: 'TRY',
+    minimumFractionDigits: 2
+  }).format(amount);
+};
+```
+
+### UI Text (Turkish)
+- Login: "Giriş Yap"
+- Upload: "Dosya Yükle"
+- Orders: "Siparişlerim"
+- Price: "Fiyat"
+- Material: "Malzeme"
+- Status: "Durum"
+- Messages: "Mesajlar"
+
+## Security Implementation
+
+### Input Validation
+- Client-side file type validation
+- Size limits enforcement
+- XSS prevention
+- CSRF protection
+
+### Environment Variables
+```env
+REACT_APP_API_BASE_URL=http://localhost:5000
+REACT_APP_FIREBASE_API_KEY=your_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_domain
+REACT_APP_SOCKET_URL=http://localhost:5000
+```
+
+## Performance Optimizations
+
+### Code Splitting
+- Route-based lazy loading
+- Component-level code splitting
+- Dynamic imports for heavy libraries (Three.js)
+
+### Asset Optimization
+- Image lazy loading
+- SVG icons instead of images
+- Minified production builds
+- Bundle analysis and optimization
+
+## Testing Requirements
+
+### Essential Tests
+- Authentication flow
+- File upload functionality
+- API integration
+- Form validations
+- Routing behavior
+
+## Development Workflow
+
+### Setup Instructions
+```bash
+# Frontend setup
+cd frontend
+npm install
+npm run dev
+
+# Backend integration
+# Ensure Flask app runs on localhost:5000
+# Frontend runs on localhost:5173 (Vite default)
+```
+
+### Build Process
+```bash
+# Development
+npm run dev
+
+# Production build
+npm run build
+npm run preview
+```
+
+## Beta Release Checklist
+
+### Functionality
+- [ ] Complete authentication flow
+- [ ] STL upload and analysis
+- [ ] Order creation and management
+- [ ] Real-time messaging
+- [ ] Payment integration
+- [ ] Admin panel access
+
+### Quality Assurance
+- [ ] No console errors in production
+- [ ] Proper error handling throughout
+- [ ] Responsive design testing
+- [ ] Cross-browser compatibility
+- [ ] Performance optimization
+- [ ] Security measures implemented
+
+### User Experience
+- [ ] Clear navigation
+- [ ] Intuitive workflows
+- [ ] Professional appearance
+- [ ] Trust indicators present
+- [ ] Help/documentation available
+
+## Deployment Configuration
+
+### Production Build
+- Environment variable management
+- CORS configuration alignment
+- Error monitoring setup
+- Analytics integration (optional)
+
+### Integration with Flask Backend
+- Ensure CORS settings match frontend origin
+- WebSocket connection handling
+- API endpoint compatibility
+- Static file serving (if needed)
+
+## Success Criteria
+
+The delivered frontend should:
+1. Integrate seamlessly with existing Flask backend
+2. Provide professional, trustworthy user experience
+3. Handle all core marketplace functions
+4. Display no errors in browser console
+5. Be ready for immediate beta user testing
+6. Include comprehensive documentation
+
+This prompt ensures the development of a production-ready frontend that maintains high quality standards while being suitable for open beta release.
