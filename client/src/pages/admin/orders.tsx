@@ -69,7 +69,7 @@ export default function AdminOrders() {
         email: "mehmet@example.com",
         name: "Mehmet Özkan",
         role: "producer" as const,
-        kvkv_consent: true,
+        kvkk_consent: true,
         created_at: "2024-01-01T00:00:00Z",
         updated_at: "2024-01-01T00:00:00Z",
         is_active: true,

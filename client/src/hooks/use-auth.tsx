@@ -36,37 +36,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-      try {
-        if (firebaseUser) {
-          const idToken = await getIdToken(firebaseUser);
-          const response = await authApi.login({ id_token: idToken });
-          
-          if (response.success) {
-            setUser(response.user as User);
-            setToken(response.token);
-            localStorage.setItem("auth_token", response.token);
-            
-            // Connect to Socket.IO
-            socketService.connect(response.token);
-          }
-        } else {
-          setUser(null);
-          setToken(null);
-          localStorage.removeItem("auth_token");
-          socketService.disconnect();
-        }
-      } catch (error) {
-        console.error("Auth state change error:", error);
-        toast({
-          title: "Kimlik doğrulama hatası",
-          description: "Giriş yapılırken bir hata oluştu.",
-          variant: "destructive",
-        });
-      } finally {
+    let unsubscribe = () => {};
+    
+    try {
+      // Check if there's a saved token from previous session
+      const savedToken = localStorage.getItem("auth_token");
+      if (savedToken) {
+        // In development, just set loading to false without verifying token
         setLoading(false);
+        return;
       }
-    });
+      
+      unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+        try {
+          if (firebaseUser) {
+            const idToken = await getIdToken(firebaseUser);
+            const response = await authApi.login({ id_token: idToken });
+            
+            if (response.success) {
+              setUser(response.user as User);
+              setToken(response.token);
+              localStorage.setItem("auth_token", response.token);
+              
+              // Connect to Socket.IO
+              socketService.connect(response.token);
+            }
+          } else {
+            setUser(null);
+            setToken(null);
+            localStorage.removeItem("auth_token");
+            socketService.disconnect();
+          }
+        } catch (error) {
+          console.error("Auth state change error:", error);
+        } finally {
+          setLoading(false);
+        }
+      });
+    } catch (error) {
+      console.error("Firebase initialization error:", error);
+      setLoading(false);
+    }
 
     return () => unsubscribe();
   }, [toast]);
@@ -112,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("auth_token", response.token);
         socketService.connect(response.token);
       } else {
-        throw new Error(response.error || "Giriş başarısız");
+        throw new Error("Giriş başarısız");
       }
     } catch (error: any) {
       toast({

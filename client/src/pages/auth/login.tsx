@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "wouter";
+import { Redirect } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { KvkkNotice } from "@/components/auth/kvkk-notice";
 import { LoginForm } from "@/components/auth/login-form";
@@ -17,11 +17,11 @@ export default function LoginPage() {
     // Redirect based on user role
     switch (user.role) {
       case "admin":
-        return <Navigate to="/admin" replace />;
+        return <Redirect to="/admin" />;
       case "producer":
-        return <Navigate to="/producer" replace />;
+        return <Redirect to="/producer" />;
       default:
-        return <Navigate to="/dashboard" replace />;
+        return <Redirect to="/dashboard" />;
     }
   }
 

@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { WebSocketServer, WebSocket } from "ws";
@@ -16,7 +16,7 @@ const upload = multer({
   limits: {
     fileSize: 100 * 1024 * 1024, // 100MB
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
     const allowedTypes = ['.stl', '.obj'];
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowedTypes.includes(ext)) {
@@ -27,7 +27,7 @@ const upload = multer({
   }
 });
 
-interface AuthenticatedRequest extends Express.Request {
+interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     email: string;
@@ -37,7 +37,7 @@ interface AuthenticatedRequest extends Express.Request {
 }
 
 // Authentication middleware
-const authenticate = async (req: AuthenticatedRequest, res: any, next: any) => {
+const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -64,7 +64,7 @@ const authenticate = async (req: AuthenticatedRequest, res: any, next: any) => {
 
 // Role-based authorization middleware
 const authorize = (roles: string[]) => {
-  return (req: AuthenticatedRequest, res: any, next: any) => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user.role)) {
       return res.status(403).json({ error: "Insufficient permissions" });
     }
@@ -89,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const wss = new WebSocketServer({ 
     server: httpServer, 
     path: '/ws',
-    verifyClient: (info) => {
+    verifyClient: (info: any) => {
       // Basic verification - in production, verify JWT tokens here
       return true;
     }
