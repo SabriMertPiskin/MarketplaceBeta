@@ -1,0 +1,1242 @@
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Baskı Pazaryeri - Beta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                }
+            },
+            fontFamily: {
+                sans: ["Inter", "system-ui", "sans-serif"],
+            }
+        }
+    };
+    </script>
+    <style>
+        :root {
+            --background: hsl(210 40% 98%);
+            --foreground: hsl(222.2 84% 4.9%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(222.2 84% 4.9%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(222.2 84% 4.9%);
+            --primary: hsl(217 91% 60%);
+            --primary-foreground: hsl(210 40% 98%);
+            --secondary: hsl(142 76% 36%);
+            --secondary-foreground: hsl(210 40% 98%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(215.4 16.3% 46.9%);
+            --accent: hsl(210 40% 96%);
+            --accent-foreground: hsl(222.2 84% 4.9%);
+            --destructive: hsl(0 84% 60%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(214.3 31.8% 91.4%);
+            --input: hsl(214.3 31.8% 91.4%);
+            --ring: hsl(217 91% 60%);
+            --radius: 0.5rem;
+        }
+        
+        .dark {
+            --background: hsl(222.2 84% 4.9%);
+            --foreground: hsl(210 40% 98%);
+            --card: hsl(222.2 84% 4.9%);
+            --card-foreground: hsl(210 40% 98%);
+            --popover: hsl(222.2 84% 4.9%);
+            --popover-foreground: hsl(210 40% 98%);
+            --primary: hsl(217 91% 60%);
+            --primary-foreground: hsl(222.2 84% 4.9%);
+            --secondary: hsl(217.2 32.6% 17.5%);
+            --secondary-foreground: hsl(210 40% 98%);
+            --muted: hsl(217.2 32.6% 17.5%);
+            --muted-foreground: hsl(215 20.2% 65.1%);
+            --accent: hsl(217.2 32.6% 17.5%);
+            --accent-foreground: hsl(210 40% 98%);
+            --destructive: hsl(0 62.8% 30.6%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(217.2 32.6% 17.5%);
+            --input: hsl(217.2 32.6% 17.5%);
+            --ring: hsl(217 91% 60%);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(142 76% 36%) 100%);
+        }
+
+        .file-drop-zone {
+            border: 2px dashed hsl(var(--border));
+            transition: all 0.3s ease;
+        }
+
+        .file-drop-zone:hover,
+        .file-drop-zone.drag-over {
+            border-color: hsl(var(--primary));
+            background-color: hsl(var(--accent));
+        }
+
+        .chat-bubble {
+            max-width: 70%;
+        }
+
+        .chat-bubble.sent {
+            margin-left: auto;
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+        }
+
+        .chat-bubble.received {
+            background-color: hsl(var(--muted));
+            color: hsl(var(--muted-foreground));
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-draft { background-color: hsl(220 14% 96%); color: hsl(220 9% 46%); }
+        .status-pending { background-color: hsl(48 100% 96%); color: hsl(25 95% 53%); }
+        .status-accepted { background-color: hsl(142 76% 96%); color: hsl(142 76% 36%); }
+        .status-paid { background-color: hsl(217 91% 96%); color: hsl(217 91% 60%); }
+        .status-in_production { background-color: hsl(262 83% 96%); color: hsl(262 83% 58%); }
+        .status-completed { background-color: hsl(142 76% 96%); color: hsl(142 76% 36%); }
+        .status-cancelled { background-color: hsl(0 84% 96%); color: hsl(0 84% 60%); }
+
+        .timeline-step {
+            position: relative;
+        }
+
+        .timeline-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 0.75rem;
+            top: 2rem;
+            height: 2rem;
+            width: 2px;
+            background-color: hsl(var(--border));
+        }
+
+        .timeline-step.completed::after {
+            background-color: hsl(var(--secondary));
+        }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-background text-foreground min-h-screen">
+    <!-- @COMPONENT: App [Main application wrapper] -->
+    <div id="app">
+        <!-- Login Page -->
+        <!-- @COMPONENT: LoginPage [Authentication interface] -->
+        <div id="loginPage" class="min-h-screen flex items-center justify-center gradient-bg p-4">
+            <div class="w-full max-w-md">
+                <!-- KVKK Compliance Notice -->
+                <div class="bg-card rounded-lg p-6 shadow-xl mb-6 border border-border">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-primary-foreground"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-card-foreground">KVKK Bildirimi</h3>
+                    </div>
+                    <p class="text-sm text-muted-foreground mb-4">
+                        Kişisel verileriniz, 3D baskı pazaryeri hizmetlerini sunabilmek için KVKK kapsamında işlenmektedir. 
+                        Devam ederek veri işleme politikamızı kabul etmiş olursunuz.
+                    </p>
+                    <button id="acceptKvkk" class="w-full bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-primary/90 transition-colors">
+                        Kabul Ediyorum
+                    </button>
+                </div>
+
+                <!-- Login Form -->
+                <div id="loginForm" class="bg-card rounded-lg p-8 shadow-xl border border-border" style="display: none;">
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="box" class="w-8 h-8 text-primary-foreground"></i>
+                        </div>
+                        <h1 class="text-2xl font-bold text-card-foreground">3D Baskı Pazaryeri</h1>
+                        <p class="text-muted-foreground mt-2">Hesabınıza giriş yapın</p>
+                    </div>
+
+                    <form id="authForm" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-card-foreground mb-2">E-posta</label>
+                            <input type="email" id="email" required 
+                                   class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                                   placeholder="ornek@email.com">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-card-foreground mb-2">Şifre</label>
+                            <input type="password" id="password" required
+                                   class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                                   placeholder="••••••••">
+                        </div>
+
+                        <button type="submit" class="w-full bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-primary/90 transition-colors">
+                            Giriş Yap
+                        </button>
+                    </form>
+
+                    <div class="mt-6 text-center">
+                        <button class="text-primary hover:underline text-sm">Şifremi Unuttum</button>
+                        <p class="mt-4 text-sm text-muted-foreground">
+                            Hesabınız yok mu? 
+                            <button class="text-primary hover:underline">Kayıt Ol</button>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Dashboard -->
+        <!-- @COMPONENT: CustomerDashboard [Customer interface with orders and upload] -->
+        <div id="customerDashboard" class="hidden min-h-screen bg-background">
+            <!-- Navigation Header -->
+            <header class="bg-card border-b border-border shadow-sm">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                                <i data-lucide="box" class="w-5 h-5 text-primary-foreground"></i>
+                            </div>
+                            <h1 class="text-xl font-semibold text-card-foreground">3D Baskı Pazaryeri</h1>
+                        </div>
+                        
+                        <nav class="hidden md:flex space-x-8">
+                            <button class="nav-btn active text-primary font-medium" data-section="dashboard">Panel</button>
+                            <button class="nav-btn text-muted-foreground hover:text-foreground" data-section="upload">Dosya Yükle</button>
+                            <button class="nav-btn text-muted-foreground hover:text-foreground" data-section="orders">Siparişlerim</button>
+                            <button class="nav-btn text-muted-foreground hover:text-foreground" data-section="messages">Mesajlar</button>
+                        </nav>
+
+                        <div class="flex items-center space-x-4">
+                            <button class="relative p-2 text-muted-foreground hover:text-foreground">
+                                <i data-lucide="bell" class="w-5 h-5"></i>
+                                <span class="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full text-xs"></span>
+                            </button>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                                    <i data-lucide="user" class="w-4 h-4 text-accent-foreground"></i>
+                                </div>
+                                <span class="text-sm font-medium text-card-foreground" data-mock="true">Ahmet Yılmaz</span>
+                            </div>
+                            <button id="logoutBtn" class="text-muted-foreground hover:text-foreground">
+                                <i data-lucide="log-out" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Mobile Navigation -->
+            <div class="md:hidden bg-card border-b border-border">
+                <div class="px-4 py-2 flex space-x-4 overflow-x-auto">
+                    <button class="nav-btn-mobile active whitespace-nowrap px-3 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground" data-section="dashboard">Panel</button>
+                    <button class="nav-btn-mobile whitespace-nowrap px-3 py-2 rounded-md text-sm font-medium text-muted-foreground" data-section="upload">Yükle</button>
+                    <button class="nav-btn-mobile whitespace-nowrap px-3 py-2 rounded-md text-sm font-medium text-muted-foreground" data-section="orders">Siparişler</button>
+                    <button class="nav-btn-mobile whitespace-nowrap px-3 py-2 rounded-md text-sm font-medium text-muted-foreground" data-section="messages">Mesajlar</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Dashboard Overview -->
+                <div id="dashboardSection" class="section-content">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-card-foreground mb-2">Hoş Geldiniz!</h2>
+                        <p class="text-muted-foreground">3D baskı siparişlerinizi yönetin ve yeni projeler oluşturun.</p>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Toplam Sipariş</p>
+                                    <p class="text-2xl font-bold text-card-foreground" data-mock="true">12</p>
+                                </div>
+                                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="package" class="w-6 h-6 text-primary"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Aktif Sipariş</p>
+                                    <p class="text-2xl font-bold text-card-foreground" data-mock="true">3</p>
+                                </div>
+                                <div class="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="clock" class="w-6 h-6 text-secondary"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Toplam Harcama</p>
+                                    <p class="text-2xl font-bold text-card-foreground" data-mock="true">₺847,50</p>
+                                </div>
+                                <div class="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                                    <i data-lucide="turkish-lira" class="w-6 h-6 text-accent-foreground"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Mesaj</p>
+                                    <p class="text-2xl font-bold text-card-foreground" data-mock="true">5</p>
+                                </div>
+                                <div class="w-12 h-12 bg-destructive/10 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="message-circle" class="w-6 h-6 text-destructive"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Orders -->
+                    <div class="bg-card rounded-lg border border-border shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-card-foreground mb-4">Son Siparişler</h3>
+                        <div class="space-y-4">
+                            <!-- @MAP: recentOrders.map(order => ( -->
+                            <div class="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="cube" class="w-6 h-6 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-card-foreground" data-mock="true">Telefon Kılıfı.stl</p>
+                                        <p class="text-sm text-muted-foreground" data-mock="true">15 Ocak 2024 14:30</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <span class="status-badge status-in_production" data-mock="true">Üretimde</span>
+                                    <span class="font-medium text-card-foreground" data-mock="true">₺45,00</span>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                            
+                            <div class="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="cube" class="w-6 h-6 text-secondary"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-card-foreground" data-mock="true">Anahtarlık.stl</p>
+                                        <p class="text-sm text-muted-foreground" data-mock="true">12 Ocak 2024 09:15</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <span class="status-badge status-completed" data-mock="true">Tamamlandı</span>
+                                    <span class="font-medium text-card-foreground" data-mock="true">₺25,50</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Upload Section -->
+                <div id="uploadSection" class="section-content hidden">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-card-foreground mb-2">STL Dosyası Yükle</h2>
+                        <p class="text-muted-foreground">3D modelinizi yükleyin ve fiyat teklifi alın.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Upload Area -->
+                        <div class="space-y-6">
+                            <!-- File Drop Zone -->
+                            <div class="file-drop-zone bg-card rounded-lg p-8 text-center border-2 border-dashed cursor-pointer">
+                                <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i data-lucide="upload" class="w-8 h-8 text-primary"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-card-foreground mb-2">STL Dosyasını Sürükleyin</h3>
+                                <p class="text-muted-foreground mb-4">veya dosya seçmek için tıklayın</p>
+                                <input type="file" id="stlFile" accept=".stl" class="hidden">
+                                <button class="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors">
+                                    Dosya Seç
+                                </button>
+                                <p class="text-xs text-muted-foreground mt-2">Maksimum dosya boyutu: 100MB</p>
+                            </div>
+
+                            <!-- Upload Progress -->
+                            <div id="uploadProgress" class="hidden bg-card rounded-lg p-6 border border-border">
+                                <div class="flex items-center space-x-4 mb-4">
+                                    <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="file-3d" class="w-4 h-4 text-primary"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-card-foreground" data-mock="true">telefon_kilifi.stl</p>
+                                        <p class="text-sm text-muted-foreground" data-mock="true">2.4 MB</p>
+                                    </div>
+                                    <span class="text-sm font-medium text-primary" data-mock="true">85%</span>
+                                </div>
+                                <div class="w-full bg-muted rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 85%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Pricing Calculator -->
+                            <div class="bg-card rounded-lg p-6 border border-border">
+                                <h3 class="text-lg font-semibold text-card-foreground mb-4">Fiyat Hesaplayıcı</h3>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-card-foreground mb-2">Malzeme</label>
+                                        <select class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground">
+                                            <option value="pla">PLA - ₺0,02/gram</option>
+                                            <option value="abs">ABS - ₺0,03/gram</option>
+                                            <option value="petg">PETG - ₺0,04/gram</option>
+                                            <option value="tpu">TPU - ₺0,06/gram</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-card-foreground mb-2">Dolgu Yoğunluğu: <span class="text-primary">%20</span></label>
+                                        <input type="range" min="10" max="100" value="20" class="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer">
+                                    </div>
+                                    
+                                    <div class="flex items-center space-x-2">
+                                        <input type="checkbox" id="supportRequired" class="rounded border-input text-primary focus:ring-ring">
+                                        <label for="supportRequired" class="text-sm text-card-foreground">Destek Malzemesi Gerekli</label>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 p-4 bg-muted rounded-lg">
+                                    <div class="flex justify-between items-center text-sm mb-2">
+                                        <span class="text-muted-foreground">Malzeme:</span>
+                                        <span class="text-card-foreground" data-mock="true">₺12,50</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm mb-2">
+                                        <span class="text-muted-foreground">İşçilik:</span>
+                                        <span class="text-card-foreground" data-mock="true">₺18,00</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm mb-2">
+                                        <span class="text-muted-foreground">Platform Komisyonu:</span>
+                                        <span class="text-card-foreground" data-mock="true">₺4,50</span>
+                                    </div>
+                                    <hr class="border-border my-2">
+                                    <div class="flex justify-between items-center font-medium">
+                                        <span class="text-card-foreground">Toplam:</span>
+                                        <span class="text-lg text-primary" data-mock="true">₺35,00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3D Preview Area -->
+                        <div class="bg-card rounded-lg border border-border overflow-hidden">
+                            <div class="p-6 border-b border-border">
+                                <h3 class="text-lg font-semibold text-card-foreground">3D Önizleme</h3>
+                            </div>
+                            
+                            <!-- 3D Viewer Container -->
+                            <!-- @FUNCTIONALITY: This should integrate Three.js for 3D model visualization -->
+                            <div class="h-96 bg-gradient-to-br from-muted to-accent/50 flex items-center justify-center">
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <i data-lucide="view-3d" class="w-8 h-8 text-primary"></i>
+                                    </div>
+                                    <p class="text-muted-foreground mb-2">STL dosyası yüklendiğinde</p>
+                                    <p class="text-muted-foreground">3D önizleme burada görünecek</p>
+                                </div>
+                            </div>
+
+                            <!-- Model Analysis -->
+                            <div class="p-6 bg-muted/30">
+                                <h4 class="font-medium text-card-foreground mb-3">Model Analizi</h4>
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span class="text-muted-foreground">Boyutlar:</span>
+                                        <span class="ml-2 text-card-foreground" data-mock="true">45×78×12 mm</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted-foreground">Hacim:</span>
+                                        <span class="ml-2 text-card-foreground" data-mock="true">28.4 cm³</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted-foreground">Ağırlık:</span>
+                                        <span class="ml-2 text-card-foreground" data-mock="true">~35.5 gram</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted-foreground">Baskı Süresi:</span>
+                                        <span class="ml-2 text-card-foreground" data-mock="true">~2.5 saat</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-8 flex justify-end space-x-4">
+                        <button class="px-6 py-2 border border-border rounded-md text-card-foreground hover:bg-accent transition-colors">
+                            Taslak Kaydet
+                        </button>
+                        <button class="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                            Sipariş Ver
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Orders Section -->
+                <div id="ordersSection" class="section-content hidden">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-card-foreground mb-2">Siparişlerim</h2>
+                        <p class="text-muted-foreground">Tüm siparişlerinizi takip edin ve yönetin.</p>
+                    </div>
+
+                    <!-- Order Filter Tabs -->
+                    <div class="bg-card rounded-lg border border-border mb-6">
+                        <div class="flex border-b border-border">
+                            <button class="order-filter-btn active px-6 py-3 text-sm font-medium border-b-2 border-primary text-primary" data-filter="all">
+                                Tümü
+                            </button>
+                            <button class="order-filter-btn px-6 py-3 text-sm font-medium text-muted-foreground hover:text-foreground" data-filter="active">
+                                Aktif
+                            </button>
+                            <button class="order-filter-btn px-6 py-3 text-sm font-medium text-muted-foreground hover:text-foreground" data-filter="completed">
+                                Tamamlanan
+                            </button>
+                            <button class="order-filter-btn px-6 py-3 text-sm font-medium text-muted-foreground hover:text-foreground" data-filter="cancelled">
+                                İptal Edilen
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Orders List -->
+                    <div class="space-y-4">
+                        <!-- @MAP: orders.map(order => ( -->
+                        <div class="bg-card rounded-lg border border-border p-6">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="cube" class="w-8 h-8 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-card-foreground" data-mock="true">Telefon Kılıfı</h3>
+                                        <p class="text-sm text-muted-foreground" data-mock="true">Sipariş #ORD-2024-001</p>
+                                        <p class="text-sm text-muted-foreground" data-mock="true">15 Ocak 2024 14:30</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="status-badge status-in_production" data-mock="true">Üretimde</span>
+                                    <p class="text-lg font-semibold text-card-foreground mt-2" data-mock="true">₺45,00</p>
+                                </div>
+                            </div>
+
+                            <!-- Order Timeline -->
+                            <div class="mb-4">
+                                <h4 class="font-medium text-card-foreground mb-3">Sipariş Durumu</h4>
+                                <div class="flex items-center space-x-4">
+                                    <div class="timeline-step completed">
+                                        <div class="w-6 h-6 bg-secondary rounded-full flex items-center justify-center">
+                                            <i data-lucide="check" class="w-3 h-3 text-secondary-foreground"></i>
+                                        </div>
+                                        <p class="text-xs text-muted-foreground mt-1">Onaylandı</p>
+                                    </div>
+                                    <div class="timeline-step completed">
+                                        <div class="w-6 h-6 bg-secondary rounded-full flex items-center justify-center">
+                                            <i data-lucide="check" class="w-3 h-3 text-secondary-foreground"></i>
+                                        </div>
+                                        <p class="text-xs text-muted-foreground mt-1">Ödendi</p>
+                                    </div>
+                                    <div class="timeline-step completed">
+                                        <div class="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                                            <i data-lucide="settings" class="w-3 h-3 text-primary-foreground animate-spin"></i>
+                                        </div>
+                                        <p class="text-xs text-foreground mt-1 font-medium">Üretimde</p>
+                                    </div>
+                                    <div class="timeline-step">
+                                        <div class="w-6 h-6 bg-muted border-2 border-border rounded-full"></div>
+                                        <p class="text-xs text-muted-foreground mt-1">Tamamlandı</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-6 h-6 bg-accent rounded-full flex items-center justify-center">
+                                            <i data-lucide="user" class="w-3 h-3 text-accent-foreground"></i>
+                                        </div>
+                                        <span class="text-sm text-muted-foreground">Üretici: <span class="text-card-foreground font-medium" data-mock="true">Mehmet Özkan</span></span>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="px-4 py-2 text-sm border border-border rounded-md text-card-foreground hover:bg-accent transition-colors">
+                                        Mesaj Gönder
+                                    </button>
+                                    <button class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                                        Detaylar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+
+                        <!-- Another order example -->
+                        <div class="bg-card rounded-lg border border-border p-6">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-16 h-16 bg-secondary/10 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="cube" class="w-8 h-8 text-secondary"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-card-foreground" data-mock="true">Anahtarlık</h3>
+                                        <p class="text-sm text-muted-foreground" data-mock="true">Sipariş #ORD-2024-002</p>
+                                        <p class="text-sm text-muted-foreground" data-mock="true">12 Ocak 2024 09:15</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="status-badge status-completed" data-mock="true">Tamamlandı</span>
+                                    <p class="text-lg font-semibold text-card-foreground mt-2" data-mock="true">₺25,50</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-6 h-6 bg-accent rounded-full flex items-center justify-center">
+                                            <i data-lucide="user" class="w-3 h-3 text-accent-foreground"></i>
+                                        </div>
+                                        <span class="text-sm text-muted-foreground">Üretici: <span class="text-card-foreground font-medium" data-mock="true">Ayşe Demir</span></span>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                        <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="px-4 py-2 text-sm border border-border rounded-md text-card-foreground hover:bg-accent transition-colors">
+                                        Tekrar Sipariş Ver
+                                    </button>
+                                    <button class="px-4 py-2 text-sm bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors">
+                                        Değerlendir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages Section -->
+                <div id="messagesSection" class="section-content hidden">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-card-foreground mb-2">Mesajlar</h2>
+                        <p class="text-muted-foreground">Üreticilerle iletişim kurun ve siparişlerinizi görüşün.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-96">
+                        <!-- Chat List -->
+                        <div class="bg-card rounded-lg border border-border">
+                            <div class="p-4 border-b border-border">
+                                <h3 class="font-semibold text-card-foreground">Konuşmalar</h3>
+                            </div>
+                            <div class="overflow-y-auto h-80">
+                                <!-- @MAP: conversations.map(conversation => ( -->
+                                <div class="chat-item p-4 border-b border-border hover:bg-accent cursor-pointer">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                            <i data-lucide="user" class="w-5 h-5 text-primary"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-medium text-card-foreground" data-mock="true">Mehmet Özkan</p>
+                                            <p class="text-sm text-muted-foreground truncate" data-mock="true">Merhaba, siparişiniz hakkında...</p>
+                                            <p class="text-xs text-muted-foreground" data-mock="true">2 saat önce</p>
+                                        </div>
+                                        <div class="w-2 h-2 bg-primary rounded-full"></div>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                                
+                                <div class="chat-item p-4 border-b border-border hover:bg-accent cursor-pointer">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center">
+                                            <i data-lucide="user" class="w-5 h-5 text-secondary"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-medium text-card-foreground" data-mock="true">Ayşe Demir</p>
+                                            <p class="text-sm text-muted-foreground truncate" data-mock="true">Anahtarlık tamamlandı!</p>
+                                            <p class="text-xs text-muted-foreground" data-mock="true">1 gün önce</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Area -->
+                        <div class="lg:col-span-2 bg-card rounded-lg border border-border flex flex-col">
+                            <!-- Chat Header -->
+                            <div class="p-4 border-b border-border">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                        <i data-lucide="user" class="w-5 h-5 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-card-foreground" data-mock="true">Mehmet Özkan</p>
+                                        <p class="text-sm text-muted-foreground" data-mock="true">Sipariş #ORD-2024-001</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat Messages -->
+                            <!-- @FUNCTIONALITY: Socket.IO integration for real-time messaging -->
+                            <div class="flex-1 p-4 overflow-y-auto space-y-4">
+                                <!-- @MAP: messages.map(message => ( -->
+                                <div class="chat-bubble received p-3 rounded-lg">
+                                    <p class="text-sm" data-mock="true">Merhaba! Siparişinizi aldım. Yaklaşık 2 gün içinde tamamlayabilirim.</p>
+                                    <p class="text-xs text-muted-foreground mt-1" data-mock="true">14:30</p>
+                                </div>
+                                
+                                <div class="chat-bubble sent p-3 rounded-lg">
+                                    <p class="text-sm" data-mock="true">Harika! Teşekkür ederim. Herhangi bir sorun olursa haber verin.</p>
+                                    <p class="text-xs text-primary-foreground/70 mt-1" data-mock="true">14:32</p>
+                                </div>
+                                
+                                <div class="chat-bubble received p-3 rounded-lg">
+                                    <p class="text-sm" data-mock="true">Elbette! Size fotoğraf da göndereceğim baskı bittiğinde.</p>
+                                    <p class="text-xs text-muted-foreground mt-1" data-mock="true">14:35</p>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+
+                            <!-- Chat Input -->
+                            <div class="p-4 border-t border-border">
+                                <div class="flex space-x-2">
+                                    <input type="text" placeholder="Mesajınızı yazın..." 
+                                           class="flex-1 px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground">
+                                    <button class="p-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                                        <i data-lucide="send" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Producer Dashboard -->
+        <!-- @COMPONENT: ProducerDashboard [Producer interface with order management] -->
+        <div id="producerDashboard" class="hidden min-h-screen bg-background">
+            <!-- Producer Navigation -->
+            <header class="bg-card border-b border-border shadow-sm">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center">
+                                <i data-lucide="factory" class="w-5 h-5 text-secondary-foreground"></i>
+                            </div>
+                            <h1 class="text-xl font-semibold text-card-foreground">Üretici Paneli</h1>
+                        </div>
+                        
+                        <nav class="hidden md:flex space-x-8">
+                            <button class="producer-nav-btn active text-secondary font-medium" data-section="producer-dashboard">Panel</button>
+                            <button class="producer-nav-btn text-muted-foreground hover:text-foreground" data-section="producer-orders">Siparişler</button>
+                            <button class="producer-nav-btn text-muted-foreground hover:text-foreground" data-section="producer-settings">Ayarlar</button>
+                        </nav>
+
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                                    <i data-lucide="user" class="w-4 h-4 text-accent-foreground"></i>
+                                </div>
+                                <span class="text-sm font-medium text-card-foreground" data-mock="true">Mehmet Özkan</span>
+                            </div>
+                            <button class="producer-logout-btn text-muted-foreground hover:text-foreground">
+                                <i data-lucide="log-out" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Producer Dashboard -->
+                <div id="producerDashboardSection" class="producer-section-content">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-card-foreground mb-2">Üretici Paneli</h2>
+                        <p class="text-muted-foreground">Siparişlerinizi yönetin ve kazançlarınızı takip edin.</p>
+                    </div>
+
+                    <!-- Producer Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Aktif Sipariş</p>
+                                    <p class="text-2xl font-bold text-card-foreground" data-mock="true">8</p>
+                                </div>
+                                <div class="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="package" class="w-6 h-6 text-secondary"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Bu Ay Kazanç</p>
+                                    <p class="text-2xl font-bold text-card-foreground" data-mock="true">₺1.245,00</p>
+                                </div>
+                                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="turkish-lira" class="w-6 h-6 text-primary"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Değerlendirme</p>
+                                    <p class="text-2xl font-bold text-card-foreground" data-mock="true">4.8</p>
+                                </div>
+                                <div class="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                                    <i data-lucide="star" class="w-6 h-6 text-accent-foreground"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Tamamlanan</p>
+                                    <p class="text-2xl font-bold text-card-foreground" data-mock="true">156</p>
+                                </div>
+                                <div class="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                                    <i data-lucide="check-circle" class="w-6 h-6 text-accent-foreground"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Producer Orders -->
+                    <div class="bg-card rounded-lg border border-border shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-card-foreground mb-4">Bekleyen Siparişler</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="cube" class="w-6 h-6 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-card-foreground" data-mock="true">Telefon Stand.stl</p>
+                                        <p class="text-sm text-muted-foreground" data-mock="true">Müşteri: Ayşe Yılmaz</p>
+                                        <p class="text-sm text-muted-foreground" data-mock="true">16 Ocak 2024 10:20</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <span class="status-badge status-pending" data-mock="true">Onay Bekliyor</span>
+                                    <span class="font-medium text-card-foreground" data-mock="true">₺65,00</span>
+                                    <button class="px-3 py-1 bg-secondary text-secondary-foreground rounded text-sm hover:bg-secondary/90">
+                                        Onayla
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <!-- @COMPONENT: AdminDashboard [Admin interface with marketplace management] -->
+        <div id="adminDashboard" class="hidden min-h-screen bg-background">
+            <!-- Admin Navigation -->
+            <header class="bg-card border-b border-border shadow-sm">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-8 h-8 bg-destructive rounded-lg flex items-center justify-center">
+                                <i data-lucide="shield" class="w-5 h-5 text-destructive-foreground"></i>
+                            </div>
+                            <h1 class="text-xl font-semibold text-card-foreground">Admin Paneli</h1>
+                        </div>
+                        
+                        <nav class="hidden md:flex space-x-8">
+                            <button class="admin-nav-btn active text-destructive font-medium" data-section="admin-dashboard">Panel</button>
+                            <button class="admin-nav-btn text-muted-foreground hover:text-foreground" data-section="admin-users">Kullanıcılar</button>
+                            <button class="admin-nav-btn text-muted-foreground hover:text-foreground" data-section="admin-orders">Siparişler</button>
+                            <button class="admin-nav-btn text-muted-foreground hover:text-foreground" data-section="admin-analytics">Analitik</button>
+                        </nav>
+
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                                    <i data-lucide="user" class="w-4 h-4 text-accent-foreground"></i>
+                                </div>
+                                <span class="text-sm font-medium text-card-foreground" data-mock="true">Admin User</span>
+                            </div>
+                            <button class="admin-logout-btn text-muted-foreground hover:text-foreground">
+                                <i data-lucide="log-out" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Admin Dashboard -->
+                <div id="adminDashboardSection" class="admin-section-content">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-card-foreground mb-2">Yönetim Paneli</h2>
+                        <p class="text-muted-foreground">Pazaryeri istatistiklerini ve kullanıcıları yönetin.</p>
+                    </div>
+
+                    <!-- Admin Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Toplam Kullanıcı</p>
+                                    <p class="text-2xl font-bold text-card-foreground" data-mock="true">1,247</p>
+                                </div>
+                                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="users" class="w-6 h-6 text-primary"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Aktif Üretici</p>
+                                    <p class="text-2xl font-bold text-card-foreground" data-mock="true">89</p>
+                                </div>
+                                <div class="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="factory" class="w-6 h-6 text-secondary"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Bu Ay Ciro</p>
+                                    <p class="text-2xl font-bold text-card-foreground" data-mock="true">₺54,320</p>
+                                </div>
+                                <div class="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                                    <i data-lucide="turkish-lira" class="w-6 h-6 text-accent-foreground"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Komisyon</p>
+                                    <p class="text-2xl font-bold text-card-foreground" data-mock="true">₺8,148</p>
+                                </div>
+                                <div class="w-12 h-12 bg-destructive/10 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="percent" class="w-6 h-6 text-destructive"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="bg-card rounded-lg border border-border shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-card-foreground mb-4">Son Aktiviteler</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="user-plus" class="w-4 h-4 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-card-foreground" data-mock="true">Yeni kullanıcı kaydı</p>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">can.demir@email.com - 5 dakika önce</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-8 h-8 bg-secondary/10 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="check-circle" class="w-4 h-4 text-secondary"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-card-foreground" data-mock="true">Sipariş tamamlandı</p>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">#ORD-2024-156 - ₺75,00 - 15 dakika önce</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // App state
+        let currentUser = null;
+        let currentDashboard = null;
+
+        // TODO: Implement Firebase authentication integration
+        // TODO: Implement Socket.IO for real-time features
+        // TODO: Implement Three.js for 3D model visualization
+        // TODO: Implement API integration with Flask backend
+
+        // KVKK Acceptance
+        document.getElementById('acceptKvkk').addEventListener('click', function() {
+            document.querySelector('#loginPage > div > div:first-child').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+        });
+
+        // Login Form Handler
+        document.getElementById('authForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // TODO: Replace with actual Firebase authentication
+            // Simulate login based on email domain for demo
+            if (email.includes('admin')) {
+                showDashboard('admin', { name: 'Admin User', role: 'admin' });
+            } else if (email.includes('producer') || email.includes('uretici')) {
+                showDashboard('producer', { name: 'Mehmet Özkan', role: 'producer' });
+            } else {
+                showDashboard('customer', { name: 'Ahmet Yılmaz', role: 'customer' });
+            }
+        });
+
+        // Show appropriate dashboard based on user role
+        function showDashboard(role, user) {
+            currentUser = user;
+            currentDashboard = role;
+            
+            // Hide login page
+            document.getElementById('loginPage').classList.add('hidden');
+            
+            // Show appropriate dashboard
+            if (role === 'customer') {
+                document.getElementById('customerDashboard').classList.remove('hidden');
+                setupCustomerNavigation();
+            } else if (role === 'producer') {
+                document.getElementById('producerDashboard').classList.remove('hidden');
+                setupProducerNavigation();
+            } else if (role === 'admin') {
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                setupAdminNavigation();
+            }
+        }
+
+        // Customer Navigation Setup
+        function setupCustomerNavigation() {
+            const navButtons = document.querySelectorAll('.nav-btn, .nav-btn-mobile');
+            const sections = document.querySelectorAll('.section-content');
+            
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetSection = this.dataset.section;
+                    
+                    // Update active nav button
+                    navButtons.forEach(b => {
+                        b.classList.remove('active', 'text-primary', 'bg-primary', 'text-primary-foreground');
+                        b.classList.add('text-muted-foreground');
+                    });
+                    this.classList.add('active', 'text-primary');
+                    if (this.classList.contains('nav-btn-mobile')) {
+                        this.classList.add('bg-primary', 'text-primary-foreground');
+                        this.classList.remove('text-muted-foreground');
+                    }
+                    
+                    // Show target section
+                    sections.forEach(section => section.classList.add('hidden'));
+                    document.getElementById(targetSection + 'Section').classList.remove('hidden');
+                });
+            });
+        }
+
+        // Producer Navigation Setup
+        function setupProducerNavigation() {
+            const navButtons = document.querySelectorAll('.producer-nav-btn');
+            const sections = document.querySelectorAll('.producer-section-content');
+            
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetSection = this.dataset.section;
+                    
+                    // Update active nav button
+                    navButtons.forEach(b => {
+                        b.classList.remove('active', 'text-secondary');
+                        b.classList.add('text-muted-foreground');
+                    });
+                    this.classList.add('active', 'text-secondary');
+                    
+                    // Show target section
+                    sections.forEach(section => section.classList.add('hidden'));
+                    document.getElementById(targetSection + 'Section').classList.remove('hidden');
+                });
+            });
+        }
+
+        // Admin Navigation Setup
+        function setupAdminNavigation() {
+            const navButtons = document.querySelectorAll('.admin-nav-btn');
+            const sections = document.querySelectorAll('.admin-section-content');
+            
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetSection = this.dataset.section;
+                    
+                    // Update active nav button
+                    navButtons.forEach(b => {
+                        b.classList.remove('active', 'text-destructive');
+                        b.classList.add('text-muted-foreground');
+                    });
+                    this.classList.add('active', 'text-destructive');
+                    
+                    // Show target section
+                    sections.forEach(section => section.classList.add('hidden'));
+                    document.getElementById(targetSection + 'Section').classList.remove('hidden');
+                });
+            });
+        }
+
+        // Logout handlers
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#logoutBtn, .producer-logout-btn, .admin-logout-btn')) {
+                logout();
+            }
+        });
+
+        function logout() {
+            currentUser = null;
+            currentDashboard = null;
+            
+            // Hide all dashboards
+            document.getElementById('customerDashboard').classList.add('hidden');
+            document.getElementById('producerDashboard').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+            
+            // Show login page
+            document.getElementById('loginPage').classList.remove('hidden');
+            
+            // Reset forms
+            document.getElementById('authForm').reset();
+            document.querySelector('#loginPage > div > div:first-child').style.display = 'block';
+            document.getElementById('loginForm').style.display = 'none';
+        }
+
+        // File upload simulation
+        document.addEventListener('change', function(e) {
+            if (e.target.id === 'stlFile') {
+                const file = e.target.files[0];
+                if (file) {
+                    // Show upload progress
+                    document.getElementById('uploadProgress').classList.remove('hidden');
+                    
+                    // TODO: Implement actual file upload to IPFS via backend
+                    // TODO: Implement STL analysis and 3D preview with Three.js
+                }
+            }
+        });
+
+        // Pricing calculator simulation
+        document.addEventListener('input', function(e) {
+            if (e.target.type === 'range') {
+                const value = e.target.value;
+                const label = e.target.previousElementSibling.querySelector('span');
+                if (label) {
+                    label.textContent = `%${value}`;
+                }
+                // TODO: Implement real-time pricing calculation
+            }
+        });
+
+        // Order filter simulation
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('order-filter-btn')) {
+                const filterBtns = document.querySelectorAll('.order-filter-btn');
+                filterBtns.forEach(btn => {
+                    btn.classList.remove('active', 'border-primary', 'text-primary');
+                    btn.classList.add('text-muted-foreground');
+                });
+                
+                e.target.classList.add('active', 'border-primary', 'text-primary');
+                e.target.classList.remove('text-muted-foreground');
+                
+                // TODO: Implement actual order filtering
+            }
+        });
+
+        // Chat simulation
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('chat-item') || e.target.closest('.chat-item')) {
+                const chatItems = document.querySelectorAll('.chat-item');
+                chatItems.forEach(item => item.classList.remove('bg-accent'));
+                
+                const targetItem = e.target.closest('.chat-item') || e.target;
+                targetItem.classList.add('bg-accent');
+                
+                // TODO: Implement Socket.IO chat functionality
+            }
+        });
+
+        // Initialize icons after content loads
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
